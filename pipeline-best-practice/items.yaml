@@ -1,0 +1,301 @@
+removeStrategy:
+  rbac: SYNC
+  items: NONE
+items:
+- kind: pipeline
+  name: checkpoint
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: "pipeline {\n  agent none\n  stages {\n    stage(\"Build\") {\n    \
+        \  agent any\n      steps {\n        echo 'Building'\n      }\n    }\n   \
+        \ stage(\"Checkpoint\") {\n      agent none\n      steps {\n        checkpoint\
+        \ 'Completed Build'\n      }\n    }\n    stage(\"Deploy\") {\n      agent\
+        \ any\n      steps {\n        echo 'Deploying'\n        sh 'exit $((RANDOM\
+        \ % 2))'\n      }\n    }\n    stage(\"Finalize\") {\n      agent any\n   \
+        \   steps {\n        echo 'Notifications'\n      }\n    }\n  }\n} "
+  description: ''
+  disabled: false
+  displayName: checkpoint
+  resumeBlocked: false
+- kind: pipeline
+  name: input
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |-
+        pipeline {
+            agent none
+            stages {
+                stage('Example Build') {
+                    agent any
+                    steps {
+                        sh 'echo Hello World'
+                    }
+                }
+                stage('Ready to Deploy') {
+                    steps {
+                        input(message: "Deploy to production?")
+                    }
+                }
+                stage('Example Deploy') {
+                    agent any
+                    steps {
+                        sh 'echo Deploying'
+                    }
+                }
+            }
+        }
+  description: ''
+  disabled: false
+  displayName: input
+  resumeBlocked: false
+- kind: multibranch
+  name: multi
+  description: ''
+  displayName: multi
+  orphanedItemStrategy:
+    defaultOrphanedItemStrategy:
+      pruneDeadBranches: true
+      daysToKeep: -1
+      numToKeep: -1
+      abortBuilds: false
+  projectFactory:
+    workflowBranchProjectFactory:
+      scriptPath: Jenkinsfile
+  properties:
+  - envVars: {}
+  - kubernetesFolderProperty: {}
+  sourcesList:
+  - branchSource:
+      source:
+        git:
+          traits:
+          - gitBranchDiscovery: {}
+          - gitTagDiscovery: {}
+          - headRegexFilter:
+              regex: te.*|0\..*
+          credentialsId: ''
+          id: 2fb064d0-1e45-403f-b124-143e0e9a5b25
+          remote: https://github.com/andreasgrob/multi-branch-pipeline.git
+      strategy:
+        allBranchesSame: {}
+- kind: multibranch
+  name: multibranch
+  description: ''
+  displayName: multibranch
+  orphanedItemStrategy:
+    defaultOrphanedItemStrategy:
+      pruneDeadBranches: true
+      daysToKeep: -1
+      numToKeep: -1
+      abortBuilds: false
+  projectFactory:
+    workflowBranchProjectFactory:
+      scriptPath: Jenkinsfile
+  properties:
+  - envVars: {}
+  sourcesList:
+  - branchSource:
+      source:
+        git:
+          traits:
+          - gitBranchDiscovery: {}
+          - gitTagDiscovery: {}
+          - headRegexFilter:
+              regex: te.*|0\..*
+          credentialsId: ''
+          id: 00648756-e853-4119-a7fa-2564ec9df24d
+          remote: https://github.com/andreasgrob/multi-branch-pipeline.git
+      strategy:
+        allBranchesSame: {}
+- kind: pipeline
+  name: parallel
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |-
+        pipeline {
+          agent none
+          stages {
+            stage('BuildAndTest') {
+              parallel {
+                stage('macos-chrome') {
+                  agent any
+                  stages {
+                    stage('Build') {
+                      steps {
+                        sh 'echo Do Build for macos-chrome'
+                      }
+                    }
+                    stage('Test') {
+                      steps {
+                        sh 'echo Do Test for macos-chrome'
+                      }
+                    }
+                  }
+                }
+                stage('macos-firefox') {
+                  agent any
+                  stages {
+                    stage('Build') {
+                      steps {
+                        sh 'echo Do Build for macos-firefox'
+                      }
+                    }
+                    stage('Test') {
+                      steps {
+                        sh 'echo Do Test for macos-firefox'
+                      }
+                    }
+                  }
+                }
+                stage('macos-safari') {
+                  agent any
+                  stages {
+                    stage('Build') {
+                      steps {
+                        sh 'echo Do Build for macos-safari'
+                      }
+                    }
+                    stage('Test') {
+                      steps {
+                        sh 'echo Do Test for macos-safari'
+                      }
+                    }
+                  }
+                }
+                stage('linux-chrome') {
+                  agent any
+                  stages {
+                    stage('Build') {
+                      steps {
+                        sh 'echo Do Build for linux-chrome'
+                      }
+                    }
+                    stage('Test') {
+                      steps {
+                        sh 'echo Do Test for linux-chrome'
+                      }
+                    }
+                  }
+                }
+                stage('linux-firefox') {
+                  agent any
+                  stages {
+                    stage('Build') {
+                      steps {
+                        sh 'echo Do Build for linux-firefox'
+                      }
+                    }
+                    stage('Test') {
+                      steps {
+                        sh 'echo Do Test for linux-firefox'
+                      }
+                    }
+                  }
+                }
+                stage('linux-safari') {
+                  agent any
+                  stages {
+                    stage('Build') {
+                      steps {
+                        sh 'echo Do Build for linux-safari'
+                      }
+                    }
+                    stage('Test') {
+                      steps {
+                        sh 'echo Do Test for linux-safari'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+  description: ''
+  disabled: false
+  displayName: parallel
+  resumeBlocked: false
+- kind: pipeline
+  name: test
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |-
+        pipeline {
+          agent none
+          stages {
+            stage('Run maven') {
+              steps {
+                script {
+                  ["aaaa", "bbbb", "cccc"].each() {
+                     echo it
+                  }
+                }
+              }
+            }
+          }
+        }
+  description: ''
+  disabled: false
+  displayName: test
+  resumeBlocked: false
+- kind: pipeline
+  name: two-containers
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |-
+        pipeline {
+          agent {
+            kubernetes {
+              yaml '''
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  containers:
+                  - name: maven
+                    image: maven:alpine
+                    command:
+                    - cat
+                    tty: true
+                  - name: node
+                    image: node:16-alpine3.12
+                    command:
+                    - cat
+                    tty: true
+                '''
+            }
+          }
+          stages {
+            stage('Run maven') {
+              steps {
+                container('maven') {
+                  sh 'mvn -version'
+                  sh ' echo Hello World > hello.txt'
+                  sh 'ls -last'
+                }
+                container('node') {
+                  sh 'npm version'
+                  sh 'cat hello.txt'
+                  sh 'ls -last'
+                }
+              }
+            }
+          }
+        }
+  description: ''
+  disabled: false
+  displayName: two-containers
+  properties:
+  - pipelineTriggers:
+      triggers:
+      - githubPush: {}
+  resumeBlocked: false
